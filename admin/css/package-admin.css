@@ -1,0 +1,298 @@
+/* File: admin/css/package-admin.css */
+
+/* Meta Box Styling */
+#ctm_package_basic,
+#ctm_package_pricing,
+#ctm_package_itinerary,
+#ctm_package_inclusions,
+#ctm_package_schedule,
+#ctm_package_policies,
+#ctm_package_stats {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, .04);
+}
+
+#ctm_package_basic .inside,
+#ctm_package_pricing .inside,
+#ctm_package_itinerary .inside,
+#ctm_package_inclusions .inside,
+#ctm_package_schedule .inside,
+#ctm_package_policies .inside,
+#ctm_package_stats .inside {
+    padding: 12px;
+    margin: 0;
+}
+
+/* Form Grid */
+.ctm-form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.ctm-form-group {
+    margin-bottom: 15px;
+}
+
+.ctm-form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: #1d2327;
+}
+
+.ctm-form-group input[type="text"],
+.ctm-form-group input[type="number"],
+.ctm-form-group input[type="time"],
+.ctm-form-group select,
+.ctm-form-group textarea {
+    width: 100%;
+    max-width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #8c8f94;
+    border-radius: 4px;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.ctm-form-group input[type="text"]:focus,
+.ctm-form-group input[type="number"]:focus,
+.ctm-form-group select:focus,
+.ctm-form-group textarea:focus {
+    border-color: #2271b1;
+    box-shadow: 0 0 0 1px #2271b1;
+    outline: 2px solid transparent;
+}
+
+/* Itinerary Builder */
+.ctm-itinerary-builder {
+    background: #f6f7f7;
+    border: 1px solid #dcdcde;
+    border-radius: 4px;
+    padding: 15px;
+}
+
+.ctm-day-section {
+    background: #fff;
+    border: 1px solid #dcdcde;
+    border-radius: 4px;
+    margin-bottom: 15px;
+    padding: 15px;
+}
+
+.ctm-day-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #f0f0f1;
+}
+
+.ctm-day-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1d2327;
+}
+
+.ctm-activity-item {
+    background: #f9f9f9;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    padding: 12px;
+    margin-bottom: 10px;
+    cursor: move;
+}
+
+.ctm-activity-item.ui-sortable-helper {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.ctm-activity-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.ctm-activity-time {
+    font-weight: 600;
+    color: #2271b1;
+}
+
+.ctm-activity-actions {
+    display: flex;
+    gap: 5px;
+}
+
+/* Inclusions List */
+.ctm-inclusions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.ctm-inclusion-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    background: #f9f9f9;
+    border-radius: 4px;
+}
+
+.ctm-inclusion-type {
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.ctm-inclusion-type.included {
+    background: #d1e7dd;
+    color: #0a3622;
+}
+
+.ctm-inclusion-type.excluded {
+    background: #f8d7da;
+    color: #58151c;
+}
+
+.ctm-inclusion-type.addon {
+    background: #cff4fc;
+    color: #055160;
+}
+
+/* Pricing Table */
+.ctm-pricing-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+}
+
+.ctm-pricing-table th {
+    text-align: left;
+    padding: 10px;
+    background: #f6f7f7;
+    border-bottom: 1px solid #dcdcde;
+    font-weight: 600;
+}
+
+.ctm-pricing-table td {
+    padding: 10px;
+    border-bottom: 1px solid #f0f0f1;
+}
+
+/* Status Indicators */
+.ctm-status {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.ctm-status.status-published {
+    background: #d1e7dd;
+    color: #0a3622;
+}
+
+.ctm-status.status-draft {
+    background: #f8d7da;
+    color: #58151c;
+}
+
+.ctm-status.status-private {
+    background: #fff3cd;
+    color: #664d03;
+}
+
+/* Stats Box */
+.ctm-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.ctm-stat-item {
+    text-align: center;
+    padding: 10px;
+    background: #f6f7f7;
+    border-radius: 4px;
+}
+
+.ctm-stat-value {
+    display: block;
+    font-size: 20px;
+    font-weight: 700;
+    color: #2271b1;
+    line-height: 1.2;
+}
+
+.ctm-stat-label {
+    display: block;
+    font-size: 11px;
+    color: #646970;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Buttons */
+.ctm-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 16px;
+    background: #2271b1;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.2s ease;
+}
+
+.ctm-button:hover {
+    background: #135e96;
+    color: #fff;
+}
+
+.ctm-button-secondary {
+    background: #f6f7f7;
+    color: #2271b1;
+    border: 1px solid #2271b1;
+}
+
+.ctm-button-secondary:hover {
+    background: #f0f0f1;
+}
+
+.ctm-button-danger {
+    background: #d63638;
+}
+
+.ctm-button-danger:hover {
+    background: #b32d2e;
+}
+
+.ctm-button-small {
+    padding: 4px 8px;
+    font-size: 12px;
+}
+
+/* Responsive */
+@media screen and (max-width: 782px) {
+    .ctm-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .ctm-stats-grid {
+        grid-template-columns: 1fr;
+    }
+}

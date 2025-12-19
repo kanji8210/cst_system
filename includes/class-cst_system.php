@@ -122,6 +122,11 @@ class Cst_system {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-ctm-database-manager.php';
 
 		/**
+		 * Optional package manager class (new)
+		 */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-package-manager.php';
+
+		/**
 		 * The class responsible for defining all actions that occur in the admin area.
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-cst_system-admin.php';
@@ -180,6 +185,8 @@ class Cst_system {
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
 		// Register admin menus and pages
 		$this->loader->add_action( 'admin_menu', $plugin_admin, 'register_admin_menu' );
+		// Add meta boxes for package post type
+		$this->loader->add_action( 'add_meta_boxes', $plugin_admin, 'register_meta_boxes' );
 
 		// Admin post handlers for locations
 		$this->loader->add_action( 'admin_post_ctm_save_location', $plugin_admin, 'handle_save_location' );

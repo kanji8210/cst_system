@@ -52,6 +52,10 @@ class Cst_system_Admin {
 		$this->plugin_name = $plugin_name;
 		$this->version = $version;
 
+		// AJAX handlers for schedule builder (admin-side)
+		add_action( 'wp_ajax_ctm_get_schedule', array( $this, 'ajax_get_schedule' ) );
+		add_action( 'wp_ajax_ctm_save_schedule', array( $this, 'ajax_save_schedule' ) );
+
 	}
 
 	/**
@@ -62,15 +66,16 @@ class Cst_system_Admin {
 		$capability = 'manage_options';
 		$parent_slug = 'cst_system';
 
-		add_menu_page( 'CST System', 'CST System', $capability, $parent_slug, array( $this, 'render_packager_list' ), 'dashicons-admin-generic', 6 );
+		add_menu_page( 'CST System', 'CST System', $capability, $parent_slug, array( $this, 'render_packages_list' ), 'dashicons-admin-generic', 6 );
 
-		// Packagers list and add/edit
-		add_submenu_page( $parent_slug, 'Packagers', 'Packagers', $capability, 'cst_packagers', array( $this, 'render_packager_list' ) );
-		add_submenu_page( $parent_slug, 'Add Packager', 'Add New', $capability, 'cst_packager_add', array( $this, 'render_packager_edit' ) );
-
-		// Packages management (CPT-based)
+		// Packages management (CPT-based). Note: removed erroneous Packager(s) entries.
 		add_submenu_page( $parent_slug, 'Packages', 'Packages', $capability, 'cst_packages', array( $this, 'render_packages_list' ) );
 		add_submenu_page( $parent_slug, 'Add Package', 'Add Package', $capability, 'cst_package_add', array( $this, 'render_package_edit' ) );
+		// Itinerary visual builder shortcut
+		add_submenu_page( $parent_slug, 'Itinerary Builder', 'Itinerary Builder', $capability, 'cst_itinerary_builder', array( $this, 'render_itinerary_builder' ) );
+
+		// Schedule Builder
+		add_submenu_page( $parent_slug, 'Schedule Builder', 'Schedule Builder', $capability, 'cst_schedule_builder', array( $this, 'render_schedule_builder' ) );
 
 		// Locations
 		add_submenu_page( $parent_slug, 'Locations', 'Locations', $capability, 'cst_locations', array( $this, 'render_locations_list' ) );
@@ -81,19 +86,6 @@ class Cst_system_Admin {
 
 	}
 
-	/**
-	 * Render Packager list page.
-	 */
-	public function render_packager_list() {
-		include plugin_dir_path( __FILE__ ) . 'partials/packager-list.php';
-	}
-
-	/**
-	 * Render Packager add/edit page.
-	 */
-	public function render_packager_edit() {
-		include plugin_dir_path( __FILE__ ) . 'partials/packager-edit.php';
-	}
 
 	/**
 	 * Render Locations list page.
@@ -110,6 +102,134 @@ class Cst_system_Admin {
 
 	public function render_package_edit() {
 		include plugin_dir_path( __FILE__ ) . 'partials/package-edit.php';
+	}
+
+	/**
+	 * Render a small admin page that links to the visual itinerary editor for packages
+	 */
+	public function render_itinerary_builder() {
+		// capability enforced by menu registration, but double-check
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( 'Insufficient permissions' );
+		}
+
+		include plugin_dir_path( __FILE__ ) . 'partials/itinerary-builder.php';
+	}
+
+	/**
+	 * Render Schedule Builder admin page
+	 */
+	public function render_schedule_builder() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( 'Insufficient permissions' );
+		}
+
+		include plugin_dir_path( __FILE__ ) . 'partials/schedule-builder.php';
+	}
+
+	/**
+	 * AJAX: return schedule JSON for a package
+	 */
+	public function ajax_get_schedule() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Unauthorized', 403 );
+		}
+		$pid = isset( $_REQUEST['post_id'] ) ? intval( wp_unslash( $_REQUEST['post_id'] ) ) : 0;
+		if ( ! $pid ) wp_send_json_error( 'Missing post_id', 400 );
+
+		$schedule = get_post_meta( $pid, '_schedule_template', true );
+		if ( empty( $schedule ) ) $schedule = '';
+		wp_send_json_success( array( 'schedule' => $schedule ) );
+	}
+
+	/**
+	 * AJAX: save schedule JSON for a package
+	 */
+	public function ajax_save_schedule() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Unauthorized', 403 );
+		}
+
+		check_admin_referer( 'ctm_save_schedule', 'ctm_save_schedule_nonce' );
+
+		$pid = isset( $_POST['post_id'] ) ? intval( wp_unslash( $_POST['post_id'] ) ) : 0;
+		$data = isset( $_POST['schedule'] ) ? wp_unslash( $_POST['schedule'] ) : '';
+		if ( ! $pid ) wp_send_json_error( 'Missing post_id', 400 );
+
+		// validate JSON
+		$decoded = json_decode( $data, true );
+		if ( ! is_array( $decoded ) ) {
+			wp_send_json_error( 'Invalid schedule format', 400 );
+		}
+
+		update_post_meta( $pid, '_schedule_template', $decoded );
+		wp_send_json_success( array( 'saved' => 1 ) );
+	}
+
+
+
+	/**
+	 * Register meta boxes for packages
+	 */
+	public function register_meta_boxes() {
+		add_meta_box(
+			'ctm_itinerary_box',
+			'Itinerary (visual)',
+			array( $this, 'render_itinerary_metabox' ),
+			'ctm_package',
+			'normal',
+			'high'
+		);
+	}
+
+	/**
+	 * Render the itinerary metabox showing days and activities visually
+	 */
+	public function render_itinerary_metabox( $post ) {
+		$raw = get_post_meta( $post->ID, 'ctm_itinerary', true );
+		$itinerary = array();
+		if ( $raw ) {
+			$decoded = json_decode( $raw, true );
+			if ( is_array( $decoded ) ) $itinerary = $decoded;
+		}
+
+		if ( empty( $itinerary ) ) {
+			echo '<p>No itinerary defined.</p>';
+			return;
+		}
+
+		echo '<div class="ctm-itinerary-metabox">';
+		foreach ( $itinerary as $day ) {
+			$day_label = isset( $day['day'] ) ? 'Day ' . intval( $day['day'] ) : 'Day';
+			echo '<div class="ctm-it-day">';
+			echo '<h4 class="ctm-it-day-title">' . esc_html( $day_label ) . '</h4>';
+			echo '<ul class="ctm-it-activities">';
+			if ( ! empty( $day['activities'] ) && is_array( $day['activities'] ) ) {
+				foreach ( $day['activities'] as $act ) {
+					$time = isset( $act['time'] ) ? esc_html( $act['time'] ) : '';
+					$title = isset( $act['title'] ) ? esc_html( $act['title'] ) : '';
+					$loc = isset( $act['location'] ) ? esc_html( $act['location'] ) : '';
+					echo '<li class="ctm-it-activity"><span class="ctm-it-time">' . $time . '</span> <span class="ctm-it-title">' . $title . '</span>' . ( $loc ? ' <span class="ctm-it-loc">— ' . $loc . '</span>' : '' ) . '</li>';
+				}
+			} else {
+				echo '<li class="ctm-it-activity">(no activities)</li>';
+			}
+			echo '</ul>';
+			echo '</div>';
+		}
+		echo '</div>';
+
+		// minimal styles
+		echo '<style>
+.ctm-itinerary-metabox{font-family:inherit}
+.ctm-it-day{border-left:3px solid #0073aa;margin:0 0 12px 0;padding:8px 12px}
+.ctm-it-day-title{margin:0 0 6px 0;font-size:14px}
+.ctm-it-activities{list-style:none;margin:0;padding:0}
+.ctm-it-activity{padding:6px 0;border-bottom:1px dashed #eee}
+.ctm-it-time{color:#555;margin-right:8px}
+.ctm-it-title{font-weight:600}
+.ctm-it-loc{color:#888;font-style:italic;margin-left:6px}
+</style>';
 	}
 
 	public function render_location_edit() {
@@ -276,6 +396,7 @@ class Cst_system_Admin {
 		wp_redirect( $redirect );
 		exit;
 	}
+
 
 	/**
 	 * Render Settings page.
