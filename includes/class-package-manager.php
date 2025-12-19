@@ -307,12 +307,18 @@ class CTM_Package_Manager {
         if ( ! is_array( $linked ) ) $linked = array();
 
         $clients = get_posts( array( 'post_type' => 'ctm_client', 'posts_per_page' => -1 ) );
-        echo '<p><select name="_clients[]" multiple style="width:100%;min-height:120px">';
+        echo '<p><select id="ctm-clients-select" name="_clients[]" multiple style="width:100%;min-height:120px">';
         foreach ( $clients as $c ) {
             $sel = in_array( $c->ID, $linked ) ? 'selected' : '';
             printf( '<option value="%d" %s>%s</option>', $c->ID, $sel, esc_html( $c->post_title ) );
         }
         echo '</select></p>';
+        // Quick add client UI
+        echo '<div style="margin-top:8px">';
+        echo '<input type="text" id="ctm-new-client-name" placeholder="'.esc_attr__( 'Name', 'cayman-tours-manager' ).'" style="width:48%;margin-right:4%" />';
+        echo '<input type="email" id="ctm-new-client-email" placeholder="'.esc_attr__( 'Email', 'cayman-tours-manager' ).'" style="width:48%" />';
+        echo '<p><button type="button" id="ctm-add-client" class="button">'.esc_html__( 'Create client', 'cayman-tours-manager' ).'</button> <span id="ctm-add-client-status" style="margin-left:8px"></span></p>';
+        echo '</div>';
         if ( empty( $clients ) ) echo '<p>' . __( 'No clients yet. Clients are created from interest submissions.', 'cayman-tours-manager' ) . '</p>';
     }
 
@@ -668,6 +674,22 @@ class CTM_Package_Manager {
             CTM_VERSION,
             true
         );
+        // Quick add client script
+        wp_enqueue_script(
+            'ctm-client-quick-add',
+            plugin_dir_url(__FILE__) . '../admin/js/client-quick-add.js',
+            array('jquery'),
+            CTM_VERSION,
+            true
+        );
+        wp_localize_script('ctm-client-quick-add', 'ctm_client_quick', array(
+            'ajax_url' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('ctm_create_client'),
+            'texts' => array(
+                'creating' => __('Creating...', 'cayman-tours-manager'),
+                'create_failed' => __('Create failed', 'cayman-tours-manager'),
+            )
+        ));
         
         // Localize script
         wp_localize_script('ctm-package-builder', 'ctm_package', array(

@@ -27,7 +27,7 @@
 
 // If this file is called directly, abort.
 if ( ! defined( 'WPINC' ) ) {
-	die;
+    die;
 }
 
 /**
@@ -37,6 +37,7 @@ if ( ! defined( 'WPINC' ) ) {
  */
 define( 'CST_SYSTEM_VERSION', '1.0.0' );
 // Backwards-compatible version constant used by some modules
+// Other AJAX handlers...
 if ( ! defined( 'CTM_VERSION' ) ) {
 	define( 'CTM_VERSION', CST_SYSTEM_VERSION );
 }
