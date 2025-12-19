@@ -23,14 +23,23 @@ class CTM_Package_Manager {
     
     private function init_hooks() {
         add_action('init', array($this, 'register_package_cpt'));
+        add_action('init', array($this, 'register_client_cpt'));
         add_action('add_meta_boxes', array($this, 'add_package_meta_boxes'));
+        add_action('add_meta_boxes', array($this, 'add_client_meta_boxes'));
+        // Client list columns and row actions
+        add_filter('manage_ctm_client_posts_columns', array($this, 'add_client_columns'));
+        add_action('manage_ctm_client_posts_custom_column', array($this, 'render_client_columns'), 10, 2);
+        add_filter('post_row_actions', array($this, 'client_row_actions'), 10, 2);
         add_action('save_post_' . $this->package_cpt, array($this, 'save_package_meta'), 10, 3);
+        add_action('save_post_ctm_client', array($this, 'save_client_meta'), 10, 3);
         add_filter('manage_' . $this->package_cpt . '_posts_columns', array($this, 'add_package_columns'));
         add_action('manage_' . $this->package_cpt . '_posts_custom_column', array($this, 'render_package_columns'), 10, 2);
         add_action('admin_menu', array($this, 'add_package_admin_pages'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
         // Frontend template loader for single package view
         add_filter('single_template', array($this, 'load_single_template'));
+        // one-time migration for itinerary meta
+        add_action('admin_init', array($this, 'maybe_migrate_itinerary_meta'));
     }
     
     public function register_package_cpt() {
@@ -106,6 +115,34 @@ class CTM_Package_Manager {
             'show_admin_column' => true,
             'show_in_rest' => true,
         ));
+    }
+
+    /**
+     * Register client CPT
+     */
+    public function register_client_cpt() {
+        $labels = array(
+            'name' => __('Clients','cayman-tours-manager'),
+            'singular_name' => __('Client','cayman-tours-manager'),
+            'menu_name' => __('Clients','cayman-tours-manager'),
+        );
+        $args = array(
+            'labels' => $labels,
+            'public' => false,
+            'show_ui' => true,
+            'show_in_menu' => false,
+            'capability_type' => 'post',
+            'supports' => array('title'),
+        );
+        register_post_type( 'ctm_client', $args );
+        // add submenu to our main menu
+        add_submenu_page(
+            'cayman-tours',
+            __('Clients','cayman-tours-manager'),
+            __('Clients','cayman-tours-manager'),
+            'manage_options',
+            'edit.php?post_type=ctm_client'
+        );
     }
     
     public function add_package_admin_pages() {
@@ -231,6 +268,15 @@ class CTM_Package_Manager {
             'side',
             'default'
         );
+        // Clients linked to this package
+        add_meta_box(
+            'ctm_package_clients',
+            __('Clients', 'cayman-tours-manager'),
+            array($this, 'render_package_clients_metabox'),
+            $this->package_cpt,
+            'side',
+            'default'
+        );
     }
     
     public function render_basic_meta_box($post) {
@@ -249,6 +295,71 @@ class CTM_Package_Manager {
             include $partial;
         } else {
             echo '<p>Package basic partial missing.</p>';
+        }
+    }
+
+    /**
+     * Render clients metabox on package editor
+     */
+    public function render_package_clients_metabox( $post ) {
+        wp_nonce_field( 'ctm_package_clients', 'ctm_package_clients_nonce' );
+        $linked = get_post_meta( $post->ID, '_clients', true );
+        if ( ! is_array( $linked ) ) $linked = array();
+
+        $clients = get_posts( array( 'post_type' => 'ctm_client', 'posts_per_page' => -1 ) );
+        echo '<p><select name="_clients[]" multiple style="width:100%;min-height:120px">';
+        foreach ( $clients as $c ) {
+            $sel = in_array( $c->ID, $linked ) ? 'selected' : '';
+            printf( '<option value="%d" %s>%s</option>', $c->ID, $sel, esc_html( $c->post_title ) );
+        }
+        echo '</select></p>';
+        if ( empty( $clients ) ) echo '<p>' . __( 'No clients yet. Clients are created from interest submissions.', 'cayman-tours-manager' ) . '</p>';
+    }
+
+    /**
+     * Add client meta boxes (for ctm_client post type)
+     */
+    public function add_client_meta_boxes( $post_type ) {
+        if ( 'ctm_client' !== $post_type ) return;
+        add_meta_box( 'ctm_client_details', __('Client Details','cayman-tours-manager'), array( $this, 'render_client_meta_box'), 'ctm_client', 'normal', 'high' );
+    }
+
+    public function render_client_meta_box( $post ) {
+        wp_nonce_field( 'ctm_client_meta', 'ctm_client_meta_nonce' );
+        $age = get_post_meta( $post->ID, '_client_age', true );
+        $email = get_post_meta( $post->ID, '_client_email', true );
+        $phone = get_post_meta( $post->ID, '_client_phone', true );
+        $travelling_with_children = get_post_meta( $post->ID, '_client_travelling_with_children', true );
+        $num_children = get_post_meta( $post->ID, '_client_num_children', true );
+        $children_ages = get_post_meta( $post->ID, '_client_children_ages', true );
+        $traveller_names = get_post_meta( $post->ID, '_client_traveller_names', true );
+
+        echo '<p><label>'.__('Name','cayman-tours-manager').'<br/><input type="text" name="client_name" value="'.esc_attr( $post->post_title ).'" style="width:100%" /></label></p>';
+        echo '<p><label>'.__('Age','cayman-tours-manager').'<br/><input type="number" name="_client_age" value="'.esc_attr( $age ).'" /></label></p>';
+        echo '<p><label>'.__('Email','cayman-tours-manager').'<br/><input type="email" name="_client_email" value="'.esc_attr( $email ).'" style="width:100%" /></label></p>';
+        echo '<p><label>'.__('WhatsApp / Phone','cayman-tours-manager').'<br/><input type="text" name="_client_phone" value="'.esc_attr( $phone ).'" style="width:100%" /></label></p>';
+        echo '<p><label>'.__('Travelling with children?','cayman-tours-manager').'<br/>';
+        echo '<select name="_client_travelling_with_children"><option value="0" '.selected( $travelling_with_children, '0', false ).'>No</option><option value="1" '.selected( $travelling_with_children, '1', false ).'>Yes</option></select></label></p>';
+        echo '<p><label>'.__('Number of children','cayman-tours-manager').'<br/><input type="number" name="_client_num_children" value="'.esc_attr( $num_children ).'" /></label></p>';
+        echo '<p><label>'.__('Children ages (comma-separated)','cayman-tours-manager').'<br/><input type="text" name="_client_children_ages" value="'.esc_attr( $children_ages ).'" style="width:100%" /></label></p>';
+        echo '<p><label>'.__('Names of travellers (comma-separated)','cayman-tours-manager').'<br/><input type="text" name="_client_traveller_names" value="'.esc_attr( $traveller_names ).'" style="width:100%" /></label></p>';
+    }
+
+    public function save_client_meta( $post_id, $post, $update ) {
+        if ( ! isset( $_POST['ctm_client_meta_nonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['ctm_client_meta_nonce'] ), 'ctm_client_meta' ) ) return;
+        if ( defined('DOING_AUTOSAVE') && DOING_AUTOSAVE ) return;
+        if ( ! current_user_can( 'edit_post', $post_id ) ) return;
+
+        if ( isset( $_POST['client_name'] ) ) {
+            $title = sanitize_text_field( wp_unslash( $_POST['client_name'] ) );
+            wp_update_post( array( 'ID' => $post_id, 'post_title' => $title ) );
+        }
+
+        $fields = array( '_client_age', '_client_email', '_client_phone', '_client_travelling_with_children', '_client_num_children', '_client_children_ages', '_client_traveller_names' );
+        foreach ( $fields as $f ) {
+            if ( isset( $_POST[ $f ] ) ) {
+                update_post_meta( $post_id, $f, sanitize_text_field( wp_unslash( $_POST[ $f ] ) ) );
+            }
         }
     }
     
@@ -339,6 +450,71 @@ class CTM_Package_Manager {
             echo '<p>Package stats partial missing.</p>';
         }
     }
+
+    /**
+     * Columns for ctm_client list table
+     */
+    public function add_client_columns( $columns ) {
+        $new = array();
+        foreach ( $columns as $key => $val ) {
+            $new[ $key ] = $val;
+            if ( 'title' === $key ) {
+                $new['client_email'] = __( 'Email', 'cayman-tours-manager' );
+                $new['client_phone'] = __( 'Phone', 'cayman-tours-manager' );
+                $new['client_travellers'] = __( 'Travellers', 'cayman-tours-manager' );
+                $new['client_status'] = __( 'Status', 'cayman-tours-manager' );
+            }
+        }
+        return $new;
+    }
+
+    public function render_client_columns( $column, $post_id ) {
+        switch ( $column ) {
+            case 'client_email':
+                $email = get_post_meta( $post_id, '_client_email', true );
+                if ( $email ) echo '<a href="mailto:' . esc_attr( $email ) . '">' . esc_html( $email ) . '</a>';
+                break;
+            case 'client_phone':
+                $phone = get_post_meta( $post_id, '_client_phone', true );
+                echo esc_html( $phone );
+                break;
+            case 'client_travellers':
+                $trav = get_post_meta( $post_id, '_client_traveller_names', true );
+                if ( is_string( $trav ) && strlen( trim( $trav ) ) > 0 ) {
+                    $count = count( array_filter( array_map( 'trim', explode( ',', $trav ) ) ) );
+                    echo intval( $count );
+                } else {
+                    echo '&#8212;';
+                }
+                break;
+            case 'client_status':
+                $s = get_post_meta( $post_id, '_client_status', true );
+                if ( ! $s ) $s = 'new';
+                $labels = array(
+                    'new' => __( 'New', 'cayman-tours-manager' ),
+                    'contacted' => __( 'Contacted', 'cayman-tours-manager' ),
+                    'scheduled' => __( 'Scheduled', 'cayman-tours-manager' ),
+                    'cold' => __( 'Gone cold', 'cayman-tours-manager' ),
+                );
+                echo isset( $labels[ $s ] ) ? esc_html( $labels[ $s ] ) : esc_html( $s );
+                break;
+        }
+    }
+
+    /**
+     * Add quick row actions for client posts (status change + delete/edit are already present)
+     */
+    public function client_row_actions( $actions, $post ) {
+        if ( isset( $post ) && $post->post_type === 'ctm_client' ) {
+            $id = $post->ID;
+            $base = admin_url( 'admin-post.php' );
+            $nonce_contact = wp_create_nonce( 'ctm_client_status_' . $id );
+            $actions['mark_contacted'] = '<a href="' . esc_url( add_query_arg( array( 'action' => 'ctm_client_update_status', 'client_id' => $id, 'status' => 'contacted', '_wpnonce' => $nonce_contact ), $base ) ) . '">' . esc_html__( 'Mark Contacted', 'cayman-tours-manager' ) . '</a>';
+            $actions['mark_scheduled'] = '<a href="' . esc_url( add_query_arg( array( 'action' => 'ctm_client_update_status', 'client_id' => $id, 'status' => 'scheduled', '_wpnonce' => $nonce_contact ), $base ) ) . '">' . esc_html__( 'Mark Scheduled', 'cayman-tours-manager' ) . '</a>';
+            $actions['mark_cold'] = '<a href="' . esc_url( add_query_arg( array( 'action' => 'ctm_client_update_status', 'client_id' => $id, 'status' => 'cold', '_wpnonce' => $nonce_contact ), $base ) ) . '">' . esc_html__( 'Mark Gone cold', 'cayman-tours-manager' ) . '</a>';
+        }
+        return $actions;
+    }
     
     public function save_package_meta($post_id, $post, $update) {
         // Check nonce
@@ -403,6 +579,15 @@ class CTM_Package_Manager {
                     update_post_meta($post_id, $field, $data);
                 }
             }
+        }
+
+        // Save linked clients (array of client post IDs)
+        if (isset($_POST['_clients']) && is_array($_POST['_clients'])) {
+            $clients = array_map('intval', wp_unslash($_POST['_clients']));
+            update_post_meta($post_id, '_clients', $clients);
+        } else {
+            // If none provided, ensure meta is removed
+            delete_post_meta($post_id, '_clients');
         }
         
         // Auto-generate package code if empty
@@ -514,6 +699,36 @@ class CTM_Package_Manager {
         }
 
         return $template;
+    }
+
+    /**
+     * One-time migration: copy legacy 'ctm_itinerary' meta into '_itinerary'
+     */
+    public function maybe_migrate_itinerary_meta() {
+        if ( ! current_user_can( 'manage_options' ) ) return;
+        $flag = get_option( 'ctm_itinerary_migrated', '0' );
+        if ( '1' === $flag ) return;
+
+        // find posts that have ctm_itinerary meta
+        global $wpdb;
+        $meta_key = 'ctm_itinerary';
+        $rows = $wpdb->get_results( $wpdb->prepare( "SELECT post_id, meta_value FROM {$wpdb->postmeta} WHERE meta_key = %s", $meta_key ) );
+        if ( ! empty( $rows ) ) {
+            foreach ( $rows as $r ) {
+                $post_id = intval( $r->post_id );
+                $raw = $r->meta_value;
+                $decoded = json_decode( $raw, true );
+                if ( is_array( $decoded ) ) {
+                    update_post_meta( $post_id, '_itinerary', $decoded );
+                } else {
+                    // if non-json, store as string anyway
+                    update_post_meta( $post_id, '_itinerary', $raw );
+                }
+            }
+        }
+
+        // mark done
+        update_option( 'ctm_itinerary_migrated', '1' );
     }
     
     private function get_booking_count($package_id) {

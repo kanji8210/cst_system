@@ -2,3 +2,12 @@
  * All of the CSS for your public-facing functionality should be
  * included in this file.
  */
+
+/* simple gallery carousel */
+.ctm-package-gallery{display:flex;gap:8px;overflow-x:auto;padding:8px 0}
+.ctm-package-gallery img{max-height:320px;border-radius:4px}
+.ctm-package-shortcode .ctm-gallery-inline img{max-height:120px;border-radius:4px}
+.ctm-package-single .ctm-act-desc, .ctm-package-schedule .ctm-sch-desc{margin-top:6px;color:#333}
+
+/* interest modal */
+#ctm-interest-modal .button{margin-right:8px}

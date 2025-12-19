@@ -1,5 +1,7 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
+// Use theme header/footer so CPT displays like normal posts
+get_header();
 /**
  * Simple single template for ctm_package.
  * Falls back to theme when absent.
@@ -125,7 +127,17 @@ if ( $schedule_raw ) {
             <p><label><?php _e( 'Your name', 'cst_system' ); ?><br/><input type="text" name="name" required /></label></p>
             <p><label><?php _e( 'Email', 'cst_system' ); ?><br/><input type="email" name="email" required /></label></p>
             <p><label><?php _e( 'Travellers', 'cst_system' ); ?><br/><input type="number" name="travellers" min="1" value="1" /></label></p>
-            <p><label><?php _e( 'Preferred dates / notes', 'cst_system' ); ?><br/><input type="text" name="dates" placeholder="e.g. 2026-06-01 to 2026-06-07" /></label></p>
+            <p>
+                <label><?php _e( 'Preferred start date', 'cst_system' ); ?><br/>
+                    <input type="date" name="start_date" />
+                </label>
+            </p>
+            <p>
+                <label><?php _e( 'Preferred end date', 'cst_system' ); ?><br/>
+                    <input type="date" name="end_date" />
+                </label>
+            </p>
+            <p><label><?php _e( 'Notes', 'cst_system' ); ?><br/><input type="text" name="dates" placeholder="Optional notes or alternative dates" /></label></p>
             <p><button type="submit" class="button button-primary"><?php _e( 'Submit interest', 'cst_system' ); ?></button></p>
             <div id="ctm-interest-message" style="display:none"></div>
         </form>
@@ -134,6 +146,7 @@ if ( $schedule_raw ) {
 
 <script>
 (function(){
+    var ajaxurl = '<?php echo admin_url( "admin-ajax.php" ); ?>';
     const btn = document.createElement('button');
     btn.className = 'button button-primary';
     btn.textContent = 'Express Interest';
@@ -148,8 +161,9 @@ if ( $schedule_raw ) {
         e.preventDefault();
         const form = this;
         const data = new FormData(form);
-        // add nonce field name expected by handler
-        data.append('nonce', document.getElementById('ctm-interest-form').querySelector('input[name="ctm_interest_nonce"]').value || document.querySelector('input[name="ctm_interest_nonce_field"]').value );
+        // add nonce field name expected by handler (safe)
+        var n = document.querySelector('#ctm-interest-form input[name="ctm_interest_nonce"]') || document.querySelector('#ctm-interest-form input[name="ctm_interest_nonce_field"]');
+        if ( n ) data.append('nonce', n.value );
         data.append('action','ctm_submit_interest');
 
         fetch(ajaxurl, { method: 'POST', credentials: 'same-origin', body: data }).then(r=>r.json()).then(function(res){
@@ -165,3 +179,8 @@ if ( $schedule_raw ) {
     });
 })();
 </script>
+
+<?php
+get_footer();
+
+?>

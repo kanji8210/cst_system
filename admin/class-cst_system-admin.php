@@ -56,6 +56,9 @@ class Cst_system_Admin {
 		add_action( 'wp_ajax_ctm_get_schedule', array( $this, 'ajax_get_schedule' ) );
 		add_action( 'wp_ajax_ctm_save_schedule', array( $this, 'ajax_save_schedule' ) );
 
+		// admin-post handler for clearing interest submissions
+		add_action( 'admin_post_ctm_clear_interest', array( $this, 'handle_clear_interest' ) );
+
 	}
 
 	/**
@@ -83,6 +86,9 @@ class Cst_system_Admin {
 
 		// Settings
 		add_submenu_page( $parent_slug, 'Settings', 'Settings', $capability, 'cst_settings', array( $this, 'render_settings_page' ) );
+
+		// Interest submissions
+		add_submenu_page( $parent_slug, 'Interest Submissions', 'Interest Submissions', $capability, 'cst_interest_submissions', array( $this, 'render_interest_submissions' ) );
 
 	}
 
@@ -403,6 +409,31 @@ class Cst_system_Admin {
 	 */
 	public function render_settings_page() {
 		include plugin_dir_path( __FILE__ ) . 'partials/settings.php';
+	}
+
+	public function render_interest_submissions() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( 'Insufficient permissions' );
+		}
+
+		include plugin_dir_path( __FILE__ ) . 'partials/interest-submissions.php';
+	}
+
+	public function handle_clear_interest() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( 'Insufficient permissions' );
+		}
+
+		check_admin_referer( 'ctm_clear_interest', 'ctm_clear_interest_nonce' );
+
+		$post_id = isset( $_POST['post_id'] ) ? intval( wp_unslash( $_POST['post_id'] ) ) : 0;
+		if ( $post_id ) {
+			delete_post_meta( $post_id, '_ctm_interest_submissions' );
+		}
+
+		$redirect = admin_url( 'admin.php?page=cst_interest_submissions' );
+		wp_redirect( $redirect );
+		exit;
 	}
 
 	/**
