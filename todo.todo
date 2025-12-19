@@ -1,0 +1,32 @@
+
+## 1. Environment Setup (30 min)
+- [x] Clone WordPress Plugin Boilerplate
+- [x] Rename all files from `plugin-name` to `cayman-tours-manager`
+- [x] Update main plugin file headers
+- [x] Set up local WordPress instance
+- [x] Activate plugin to confirm it works
+
+## 2. Basic Structure (1 hour)
+- [x ] Create directory structure:
+  - [x] `/includes/models/`
+  - [x] `/includes/controllers/`
+  - [x] `/admin/views/`
+  - [ ] `/public/views/`
+- [ ] Create autoloader or use Composer
+- [ ] Set up constants in config file
+
+## 3. Database Schema (1 hour)
+- [ ] Create `install.php` with table creation SQL
+- [ ] Define table structures
+- [ ] Create uninstall cleanup script
+
+## 4. First CPT - Tour Packages (1 hour)
+- [ ] Create `Tour_CPT.php` class
+- [ ] Register `ctm_tour` post type
+- [ ] Add basic metaboxes (price, duration)
+- [ ] Test in admin - can you create a tour?
+
+## 5. Git Setup (15 min)
+- [ ] Initialize git repository
+- [ ] Create `.gitignore` for WordPress
+- [ ] First commit: "Initial plugin structure"
