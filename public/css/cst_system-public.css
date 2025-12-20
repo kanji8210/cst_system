@@ -12,5 +12,13 @@
 /* package cards */
 .ctm-package-card .button:hover{background-color:#006400;border-color:#006400;color:#fff}
 
+/* responsive grid */
+@media (max-width: 768px) {
+	.ctm-packages-grid{grid-template-columns:repeat(2,1fr)!important}
+}
+@media (max-width: 480px) {
+	.ctm-packages-grid{grid-template-columns:1fr!important}
+}
+
 /* interest modal */
 #ctm-interest-modal .button{margin-right:8px}
