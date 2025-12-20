@@ -1,7 +1,8 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
+$columns = isset( $columns ) ? intval( $columns ) : 3;
 ?>
-<div class="ctm-packages-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px">
+<div class="ctm-packages-grid" style="display:grid;grid-template-columns:repeat(<?php echo esc_attr( $columns ); ?>,1fr);gap:18px">
 <?php while ( $query->have_posts() ): $query->the_post();
     $post_id = get_the_ID();
     $tagline = get_post_meta( $post_id, 'ctm_tagline', true );

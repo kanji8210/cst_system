@@ -9,5 +9,8 @@
 .ctm-package-shortcode .ctm-gallery-inline img{max-height:120px;border-radius:4px}
 .ctm-package-single .ctm-act-desc, .ctm-package-schedule .ctm-sch-desc{margin-top:6px;color:#333}
 
+/* package cards */
+.ctm-package-card .button:hover{background-color:#006400;border-color:#006400;color:#fff}
+
 /* interest modal */
 #ctm-interest-modal .button{margin-right:8px}

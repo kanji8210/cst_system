@@ -127,15 +127,19 @@ class Cst_system_Public {
 
 	/**
 	 * Shortcode to list multiple packages.
-	 * Usage: [ctm_packages posts_per_page="6" type="Adventure" orderby="date" order="DESC"]
+	 * Usage: [ctm_packages posts_per_page="6" columns="3" type="Adventure" orderby="date" order="DESC"]
 	 */
 	public function shortcode_packages( $atts ) {
 		$atts = shortcode_atts( array(
 			'posts_per_page' => 6,
+			'columns' => 3,
 			'type' => '',
 			'orderby' => 'date',
 			'order' => 'DESC',
 		), $atts, 'ctm_packages' );
+		
+		$columns = intval( $atts['columns'] );
+		if ( $columns < 1 ) $columns = 3;
 
 		$args = array(
 			'post_type' => 'ctm_package',
