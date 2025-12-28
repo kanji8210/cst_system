@@ -120,7 +120,8 @@ if ( $post_id ) {
                                 foreach ( $day['activities'] as $act ): ?>
                                     <div class="ctm-activity">
                                         <span class="act-handle">☰</span>
-                                        <p><label>Time <input class="act-time" name="act_time[]" value="<?php echo esc_attr( $act['time'] ); ?>" /></label></p>
+                                        <p><label>Start Time <input type="time" class="act-start-time" name="act_start_time[]" value="<?php echo esc_attr( $act['start_time'] ?? $act['time'] ?? '' ); ?>" required /></label></p>
+                                        <p><label>End Time <input type="time" class="act-end-time" name="act_end_time[]" value="<?php echo esc_attr( $act['end_time'] ?? '' ); ?>" required /></label></p>
                                         <p><label>Title <input class="act-title" name="act_title[]" value="<?php echo esc_attr( $act['title'] ); ?>" /></label></p>
                                         <p><label>Description <textarea class="act-desc" name="act_desc[]"><?php echo esc_textarea( $act['desc'] ); ?></textarea></label></p>
                                         <p><label>Location <input class="act-location" name="act_location[]" value="<?php echo esc_attr( $act['location'] ); ?>" /></label></p>
@@ -148,7 +149,8 @@ if ( $post_id ) {
             <script type="text/html" id="ctm-activity-template">
                 <div class="ctm-activity">
                     <span class="act-handle">☰</span>
-                    <p><label>Time <input class="act-time" name="act_time[]" value="" /></label></p>
+                    <p><label>Start Time <input type="time" class="act-start-time" name="act_start_time[]" value="" required /></label></p>
+                    <p><label>End Time <input type="time" class="act-end-time" name="act_end_time[]" value="" required /></label></p>
                     <p><label>Title <input class="act-title" name="act_title[]" value="" /></label></p>
                     <p><label>Description <textarea class="act-desc" name="act_desc[]"></textarea></label></p>
                     <p><label>Location <input class="act-location" name="act_location[]" value="" /></label></p>

@@ -9,7 +9,8 @@
             $day.find('.ctm-activity').each(function(){
                 var $act = $(this);
                 activities.push({
-                    time: $act.find('.act-time').val() || '',
+                    start_time: $act.find('.act-start-time').val() || '',
+                    end_time: $act.find('.act-end-time').val() || '',
                     title: $act.find('.act-title').val() || '',
                     desc: $act.find('.act-desc').val() || '',
                     location: $act.find('.act-location').val() || '',

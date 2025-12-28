@@ -2,12 +2,17 @@
 if ( ! defined( 'ABSPATH' ) ) exit;
 ?>
 <div class="ctm-schedule-meta">
-    <p><strong><?php _e( 'Schedule Template (visual editor)', 'cst_system' ); ?></strong></p>
+    <h3><?php _e( 'Schedule Template', 'cst_system' ); ?></h3>
+    <p class="description"><?php _e( 'Create a reusable schedule template for this package. Add schedule items below or load an example.', 'cst_system' ); ?></p>
+
+    <div class="ctm-json-controls" style="margin-bottom: 15px;">
+        <button type="button" class="button" id="ctm-load-schedule-example"><?php _e( 'Load Example Schedule', 'cst_system' ); ?></button>
+    </div>
 
     <div id="ctm-schedule-items"></div>
 
     <p>
-        <button type="button" class="button" id="ctm-add-schedule-item">Add Item</button>
+        <button type="button" class="button button-primary" id="ctm-add-schedule-item"><?php _e( 'Add Schedule Item', 'cst_system' ); ?></button>
     </p>
 
     <input type="hidden" name="_schedule_template" id="_schedule_template" value="<?php echo esc_attr( is_array( $schedule_template ) ? wp_json_encode( $schedule_template ) : $schedule_template ); ?>" />

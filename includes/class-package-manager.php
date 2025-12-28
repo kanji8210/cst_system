@@ -24,6 +24,7 @@ class CTM_Package_Manager {
     private function init_hooks() {
         add_action('init', array($this, 'register_package_cpt'));
         add_action('init', array($this, 'register_client_cpt'));
+        add_action('init', array($this, 'remove_package_editor'));
         add_action('add_meta_boxes', array($this, 'add_package_meta_boxes'));
         add_action('add_meta_boxes', array($this, 'add_client_meta_boxes'));
         // Client list columns and row actions
@@ -40,6 +41,14 @@ class CTM_Package_Manager {
         add_filter('single_template', array($this, 'load_single_template'));
         // one-time migration for itinerary meta
         add_action('admin_init', array($this, 'maybe_migrate_itinerary_meta'));
+    }
+    
+    /**
+     * Remove the default WordPress editor for packages
+     */
+    public function remove_package_editor() {
+        remove_post_type_support($this->package_cpt, 'editor');
+        remove_post_type_support($this->package_cpt, 'excerpt');
     }
     
     public function register_package_cpt() {
@@ -69,7 +78,7 @@ class CTM_Package_Manager {
             'has_archive'         => true,
             'hierarchical'        => false,
             'menu_position'       => 30,
-            'supports'            => array('title', 'editor', 'thumbnail', 'excerpt'),
+            'supports'            => array('thumbnail'),
             'show_in_rest'        => true,
             'rest_base'           => 'packages',
         );
@@ -199,6 +208,16 @@ class CTM_Package_Manager {
             return;
         }
         
+        // Title and Description (replaces default editor)
+        add_meta_box(
+            'ctm_package_title_description',
+            __('Package Title & Description', 'cayman-tours-manager'),
+            array($this, 'render_title_description_meta_box'),
+            $this->package_cpt,
+            'normal',
+            'high'
+        );
+        
         // Basic Information
         add_meta_box(
             'ctm_package_basic',
@@ -277,6 +296,20 @@ class CTM_Package_Manager {
             'side',
             'default'
         );
+    }
+    
+    public function render_title_description_meta_box($post) {
+        wp_nonce_field('ctm_package_meta', 'ctm_package_meta_nonce');
+        
+        $package_title = $post->post_title;
+        $package_description = $post->post_content;
+        
+        $partial = plugin_dir_path(__FILE__) . '../admin/partials/package-title-description-meta.php';
+        if ( is_file( $partial ) && is_readable( $partial ) ) {
+            include $partial;
+        } else {
+            echo '<p>Package title/description partial missing.</p>';
+        }
     }
     
     public function render_basic_meta_box($post) {
@@ -539,6 +572,24 @@ class CTM_Package_Manager {
             return;
         }
         
+        // Update post title and content if provided
+        if (isset($_POST['_package_title']) || isset($_POST['_package_description'])) {
+            $update_post = array('ID' => $post_id);
+            
+            if (isset($_POST['_package_title'])) {
+                $update_post['post_title'] = sanitize_text_field($_POST['_package_title']);
+            }
+            
+            if (isset($_POST['_package_description'])) {
+                $update_post['post_content'] = wp_kses_post($_POST['_package_description']);
+            }
+            
+            // Unhook to prevent infinite loop
+            remove_action('save_post_' . $this->package_cpt, array($this, 'save_package_meta'), 10);
+            wp_update_post($update_post);
+            add_action('save_post_' . $this->package_cpt, array($this, 'save_package_meta'), 10, 3);
+        }
+        
         // Save basic fields
         $fields = array(
             '_package_code',
@@ -566,14 +617,65 @@ class CTM_Package_Manager {
             }
         }
         
-        // Save JSON/array fields
+        // Save inclusions (array from multiple inputs)
+        if (isset($_POST['_inclusions_items'])) {
+            $inclusions = array_filter(array_map('sanitize_text_field', $_POST['_inclusions_items']), 'strlen');
+            update_post_meta($post_id, '_inclusions', $inclusions);
+        }
+        
+        // Save exclusions (array from multiple inputs)
+        if (isset($_POST['_exclusions_items'])) {
+            $exclusions = array_filter(array_map('sanitize_text_field', $_POST['_exclusions_items']), 'strlen');
+            update_post_meta($post_id, '_exclusions', $exclusions);
+        }
+        
+        // Save add-ons (array of objects with name and price)
+        if (isset($_POST['_addons_name']) && isset($_POST['_addons_price'])) {
+            $addon_names = array_map('sanitize_text_field', $_POST['_addons_name']);
+            $addon_prices = array_map('sanitize_text_field', $_POST['_addons_price']);
+            $addons = array();
+            
+            foreach ($addon_names as $index => $name) {
+                if (!empty($name)) {
+                    $addons[] = array(
+                        'name' => $name,
+                        'price' => isset($addon_prices[$index]) ? floatval($addon_prices[$index]) : 0
+                    );
+                }
+            }
+            
+            update_post_meta($post_id, '_addons', $addons);
+        }
+        
+        // Save seasonal pricing (array of objects)
+        if (isset($_POST['_seasonal_name']) && isset($_POST['_seasonal_start']) && 
+            isset($_POST['_seasonal_end']) && isset($_POST['_seasonal_price'])) {
+            
+            $seasonal_names = array_map('sanitize_text_field', $_POST['_seasonal_name']);
+            $seasonal_starts = array_map('sanitize_text_field', $_POST['_seasonal_start']);
+            $seasonal_ends = array_map('sanitize_text_field', $_POST['_seasonal_end']);
+            $seasonal_prices = array_map('sanitize_text_field', $_POST['_seasonal_price']);
+            $seasonal_pricing = array();
+            
+            foreach ($seasonal_names as $index => $name) {
+                if (!empty($name) && !empty($seasonal_starts[$index]) && 
+                    !empty($seasonal_ends[$index]) && !empty($seasonal_prices[$index])) {
+                    $seasonal_pricing[] = array(
+                        'name' => $name,
+                        'start_date' => $seasonal_starts[$index],
+                        'end_date' => $seasonal_ends[$index],
+                        'price' => floatval($seasonal_prices[$index])
+                    );
+                }
+            }
+            
+            update_post_meta($post_id, '_seasonal_pricing', $seasonal_pricing);
+        }
+        
+        // Save JSON/array fields (for itinerary and schedule template which still use JSON editor)
         $array_fields = array(
-            '_seasonal_pricing',
             '_itinerary',
             '_schedule_template',
-            '_inclusions',
-            '_exclusions',
-            '_addons',
             '_requirements',
             '_what_to_bring',
         );

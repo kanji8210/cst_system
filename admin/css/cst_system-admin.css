@@ -2,3 +2,361 @@
  * All of the CSS for your admin-specific functionality should be
  * included in this file.
  */
+
+/* ===== Title & Description Styling ===== */
+.ctm-title-description-wrapper {
+	background: #fff;
+	padding: 15px;
+}
+
+#_package_title {
+	font-size: 16px;
+	padding: 8px 12px;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+#_package_title:focus {
+	border-color: #2271b1;
+	outline: none;
+	box-shadow: 0 0 0 1px #2271b1;
+}
+
+.ctm-title-description-wrapper label span {
+	font-weight: 400;
+	font-size: 13px;
+}
+
+/* Hide the WordPress default title field */
+#post-body-content {
+	margin-bottom: 0;
+}
+
+#titlediv {
+	display: none !important;
+}
+
+#postdivrich {
+	display: none !important;
+}
+
+/* ===== Inclusions/Exclusions/Add-ons Styling ===== */
+.ctm-inclusions-wrapper,
+.ctm-exclusions-wrapper,
+.ctm-addons-wrapper {
+	background: #fff;
+	padding: 15px;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	margin-bottom: 15px;
+}
+
+.ctm-inclusions-wrapper h3,
+.ctm-exclusions-wrapper h3,
+.ctm-addons-wrapper h3 {
+	margin-top: 0;
+	margin-bottom: 15px;
+	color: #23282d;
+	font-size: 14px;
+	font-weight: 600;
+}
+
+.ctm-list-item {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin-bottom: 10px;
+	padding: 10px;
+	background: #f9f9f9;
+	border: 1px solid #e5e5e5;
+	border-radius: 3px;
+}
+
+.ctm-list-item:hover {
+	background: #f5f5f5;
+	border-color: #ddd;
+}
+
+.ctm-item-input {
+	flex: 1;
+	padding: 6px 10px;
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	font-size: 13px;
+}
+
+.ctm-item-input:focus {
+	border-color: #2271b1;
+	outline: none;
+	box-shadow: 0 0 0 1px #2271b1;
+}
+
+.ctm-addon-name {
+	min-width: 200px;
+}
+
+.ctm-addon-price {
+	max-width: 120px;
+}
+
+.ctm-remove-item {
+	color: #b32d2e;
+	border-color: #b32d2e;
+	flex-shrink: 0;
+}
+
+.ctm-remove-item:hover {
+	background: #b32d2e;
+	color: #fff;
+	border-color: #b32d2e;
+}
+
+/* ===== Seasonal Pricing Styling ===== */
+.ctm-seasonal-item {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin-bottom: 10px;
+	padding: 10px;
+	background: #f9f9f9;
+	border: 1px solid #e5e5e5;
+	border-radius: 3px;
+}
+
+.ctm-seasonal-item:hover {
+	background: #f5f5f5;
+	border-color: #ddd;
+}
+
+.ctm-season-name,
+.ctm-season-start,
+.ctm-season-end,
+.ctm-season-price {
+	padding: 6px 10px;
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	font-size: 13px;
+}
+
+.ctm-season-name:focus,
+.ctm-season-start:focus,
+.ctm-season-end:focus,
+.ctm-season-price:focus {
+	border-color: #2271b1;
+	outline: none;
+	box-shadow: 0 0 0 1px #2271b1;
+}
+
+.ctm-remove-season {
+	color: #b32d2e;
+	border-color: #b32d2e;
+	flex-shrink: 0;
+}
+
+.ctm-remove-season:hover {
+	background: #b32d2e;
+	color: #fff;
+	border-color: #b32d2e;
+}
+
+.ctm-add-season,
+.ctm-add-item {
+	margin-top: 10px;
+	background: #2271b1;
+	color: #fff;
+	border-color: #2271b1;
+}
+
+.ctm-add-season:hover,
+.ctm-add-item:hover {
+	background: #135e96;
+	border-color: #135e96;
+	color: #fff;
+}
+
+#ctm-seasonal-pricing-list {
+	margin-bottom: 10px;
+}
+
+/* ===== JSON Editor Styling ===== */
+.ctm-itinerary-editor,
+.ctm-schedule-meta {
+	background: #fff;
+	padding: 15px;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+}
+
+.ctm-itinerary-editor h3,
+.ctm-schedule-meta h3 {
+	margin-top: 0;
+	margin-bottom: 10px;
+	color: #23282d;
+	font-size: 16px;
+	font-weight: 600;
+}
+
+.ctm-json-controls {
+	margin: 15px 0;
+	padding: 10px;
+	background: #f9f9f9;
+	border: 1px solid #e5e5e5;
+	border-radius: 3px;
+}
+
+.ctm-json-controls .button {
+	margin-right: 8px;
+}
+
+.ctm-json-input {
+	width: 100%;
+	font-family: 'Courier New', Courier, monospace;
+	font-size: 13px;
+	line-height: 1.6;
+	padding: 10px;
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	background: #f9f9f9;
+	resize: vertical;
+}
+
+.ctm-json-input:focus {
+	border-color: #2271b1;
+	outline: none;
+	box-shadow: 0 0 0 1px #2271b1;
+	background: #fff;
+}
+
+.ctm-json-help {
+	margin-top: 15px;
+}
+
+.ctm-json-help details {
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	padding: 10px;
+	background: #f9f9f9;
+}
+
+.ctm-json-help summary {
+	cursor: pointer;
+	padding: 5px;
+	user-select: none;
+}
+
+.ctm-json-help summary:hover {
+	background: #f0f0f0;
+	border-radius: 3px;
+}
+
+.ctm-json-example {
+	margin-top: 15px;
+	padding: 10px;
+	background: #fff;
+	border-radius: 3px;
+}
+
+.ctm-json-example pre {
+	background: #272822;
+	color: #f8f8f2;
+	padding: 15px;
+	border-radius: 3px;
+	overflow-x: auto;
+	font-size: 12px;
+	line-height: 1.5;
+}
+
+.ctm-json-example ul {
+	margin: 10px 0 10px 20px;
+}
+
+.ctm-json-example li {
+	margin-bottom: 5px;
+	line-height: 1.6;
+}
+
+.ctm-json-example code {
+	background: #f0f0f1;
+	padding: 2px 6px;
+	border-radius: 2px;
+	font-family: 'Courier New', Courier, monospace;
+	font-size: 12px;
+	color: #d63638;
+}
+
+#ctm-itinerary-validation,
+#ctm-schedule-validation {
+	display: inline-block;
+	font-weight: 600;
+	animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+/* ===== Schedule Items Styling ===== */
+.ctm-schedule-row {
+	border: 1px solid #eee;
+	padding: 12px;
+	margin-bottom: 10px;
+	border-left: 4px solid #2271b1;
+	background: #fff;
+	border-radius: 3px;
+}
+
+.ctm-schedule-row:hover {
+	border-color: #ddd;
+	box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.ctm-schedule-row .row-controls {
+	float: right;
+}
+
+.ctm-schedule-row input[type="time"] {
+	width: 120px;
+	padding: 6px 10px;
+	border: 1px solid #ddd;
+	border-radius: 3px;
+}
+
+.ctm-schedule-row input[type="text"] {
+	width: 40%;
+	padding: 6px 10px;
+	border: 1px solid #ddd;
+	border-radius: 3px;
+}
+
+.ctm-schedule-row textarea {
+	width: 98%;
+	height: 60px;
+	padding: 8px;
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	resize: vertical;
+	margin-top: 8px;
+}
+
+.ctm-schedule-row input:focus,
+.ctm-schedule-row textarea:focus {
+	border-color: #2271b1;
+	outline: none;
+	box-shadow: 0 0 0 1px #2271b1;
+}
+
+.ctm-schedule-row .button-link {
+	color: #b32d2e;
+	text-decoration: none;
+}
+
+.ctm-schedule-row .button-link:hover {
+	color: #8a2424;
+	text-decoration: underline;
+}
