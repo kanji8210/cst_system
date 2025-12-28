@@ -274,8 +274,18 @@ class CTM_Package_Manager {
             __('Requirements & Policies', 'cayman-tours-manager'),
             array($this, 'render_policies_meta_box'),
             $this->package_cpt,
-            'side',
-            'default'
+            'normal',
+            'high'
+        );
+        
+        // Call to Action
+        add_meta_box(
+            'ctm_package_cta',
+            __('Call to Action Settings', 'cayman-tours-manager'),
+            array($this, 'render_cta_meta_box'),
+            $this->package_cpt,
+            'normal',
+            'high'
         );
         
         // Quick Stats
@@ -477,6 +487,30 @@ class CTM_Package_Manager {
         }
     }
     
+    public function render_cta_meta_box($post) {
+        $cta_primary_text = get_post_meta($post->ID, '_cta_primary_text', true);
+        $cta_primary_type = get_post_meta($post->ID, '_cta_primary_type', true);
+        $cta_primary_value = get_post_meta($post->ID, '_cta_primary_value', true);
+        $cta_secondary_text = get_post_meta($post->ID, '_cta_secondary_text', true);
+        $cta_secondary_type = get_post_meta($post->ID, '_cta_secondary_type', true);
+        $cta_secondary_value = get_post_meta($post->ID, '_cta_secondary_value', true);
+        $cta_message = get_post_meta($post->ID, '_cta_message', true);
+        $cta_show_availability = get_post_meta($post->ID, '_cta_show_availability', true);
+        
+        // Set defaults if empty
+        if (empty($cta_primary_text)) $cta_primary_text = 'Express Interest';
+        if (empty($cta_primary_type)) $cta_primary_type = 'form';
+        if (empty($cta_secondary_text)) $cta_secondary_text = 'Contact Us to Book';
+        if (empty($cta_secondary_type)) $cta_secondary_type = 'email';
+        
+        $partial = plugin_dir_path(__FILE__) . '../admin/partials/package-cta-meta.php';
+        if ( is_file( $partial ) && is_readable( $partial ) ) {
+            include $partial;
+        } else {
+            echo '<p>Package CTA partial missing.</p>';
+        }
+    }
+    
     public function render_stats_meta_box($post) {
         $booking_count = $this->get_booking_count($post->ID);
         $revenue = $this->get_package_revenue($post->ID);
@@ -609,6 +643,15 @@ class CTM_Package_Manager {
             '_end_time',
             '_recurring_pattern',
             '_cancellation_policy',
+            '_requirements',
+            '_what_to_bring',
+            '_cta_primary_text',
+            '_cta_primary_type',
+            '_cta_primary_value',
+            '_cta_secondary_text',
+            '_cta_secondary_type',
+            '_cta_secondary_value',
+            '_cta_message',
         );
         
         foreach ($fields as $field) {
@@ -676,8 +719,6 @@ class CTM_Package_Manager {
         $array_fields = array(
             '_itinerary',
             '_schedule_template',
-            '_requirements',
-            '_what_to_bring',
         );
         
         foreach ($array_fields as $field) {
@@ -686,6 +727,19 @@ class CTM_Package_Manager {
                 if (is_array($data)) {
                     update_post_meta($post_id, $field, $data);
                 }
+            }
+        }
+        
+        // Save checkbox fields
+        $checkbox_fields = array(
+            '_cta_show_availability',
+        );
+        
+        foreach ($checkbox_fields as $field) {
+            if (isset($_POST[$field]) && $_POST[$field] == '1') {
+                update_post_meta($post_id, $field, '1');
+            } else {
+                update_post_meta($post_id, $field, '0');
             }
         }
 
